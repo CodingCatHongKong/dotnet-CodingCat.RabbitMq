@@ -1,7 +1,7 @@
-﻿using System;
-using CodingCat.RabbitMq.Impls;
+﻿using CodingCat.RabbitMq.Impls;
 using CodingCat.RabbitMq.Tests.Abstracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 
 namespace CodingCat.RabbitMq.Tests

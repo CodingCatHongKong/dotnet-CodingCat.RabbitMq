@@ -8,6 +8,7 @@ namespace CodingCat.RabbitMq.Tests.Abstracts
         protected IConnection Connection { get; }
 
         #region Constructor(s)
+
         public BaseTest()
         {
             this.Connection = new ConnectionFactory()
@@ -15,7 +16,8 @@ namespace CodingCat.RabbitMq.Tests.Abstracts
                 Uri = new Uri(Constants.CONNECTION_STRING)
             }.CreateConnection();
         }
-        #endregion
+
+        #endregion Constructor(s)
 
         public void Dispose()
         {
