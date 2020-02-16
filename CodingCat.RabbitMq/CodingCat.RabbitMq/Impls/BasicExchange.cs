@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 namespace CodingCat.RabbitMq.Impls
 {
-    public class BasicExchange
-        : IExchange, IExchangeProperty, IDeclared
+    public class BasicExchange : IExchange, IExchangeProperty
     {
         public IModel Channel { get; private set; }
 

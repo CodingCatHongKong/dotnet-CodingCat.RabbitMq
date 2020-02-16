@@ -5,8 +5,7 @@ using System.Collections.Generic;
 
 namespace CodingCat.RabbitMq.Impls
 {
-    public class BasicQueue
-        : IQueue, IQueueProperty, IDeclared
+    public class BasicQueue : IQueue, IQueueProperty
     {
         public IModel Channel { get; private set; }
 
