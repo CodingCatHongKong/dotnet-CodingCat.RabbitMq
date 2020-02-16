@@ -1,30 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using CodingCat.RabbitMq.Impls;
 using CodingCat.RabbitMq.Tests.Abstracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 
 namespace CodingCat.RabbitMq.Tests
 {
     [TestClass]
-    public class TestDeclare : BaseTest, IDisposable
+    public class TestDeclare : BaseTest
     {
         public const string QUEUE_NAME = nameof(TestDeclare);
         public static readonly string ExchangeName = $"{QUEUE_NAME}.direct";
-
-        public new void Dispose()
-        {
-            var consumerChannel = this.Connection.CreateModel();
-            var consumer = new EventingBasicConsumer(consumerChannel);
-            consumerChannel.BasicConsume(QUEUE_NAME, false, consumer);
-            consumerChannel.Close();
-            consumerChannel.Dispose();
-
-            base.Dispose();
-        }
 
         [TestMethod]
         public void Test_QueueDeclare_Ok()
@@ -39,7 +25,10 @@ namespace CodingCat.RabbitMq.Tests
 
             // Act
             using (var queue = properties.Declare(this.Connection))
+            {
                 queue.Channel.QueueDeclarePassive(QUEUE_NAME);
+                queue.Channel.QueueDelete(QUEUE_NAME, true, true);
+            }
 
             // Assert
         }
@@ -70,7 +59,10 @@ namespace CodingCat.RabbitMq.Tests
                 {
                     queue.Bind(exchange);
                     exchange.Channel.ExchangeDeclarePassive(ExchangeName);
+
+                    queue.Channel.QueueDelete(QUEUE_NAME, true, true);
                 }
+                exchange.Channel.ExchangeDelete(ExchangeName, true);
             }
 
             // Assert

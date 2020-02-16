@@ -1,13 +1,9 @@
 ﻿using RabbitMQ.Client;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.Tests.Abstracts
 {
-    public class BaseTest : IDisposable
+    public abstract class BaseTest : IDisposable
     {
         protected IConnection Connection { get; }
 
