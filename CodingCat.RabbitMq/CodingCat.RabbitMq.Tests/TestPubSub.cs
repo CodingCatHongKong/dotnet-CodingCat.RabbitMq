@@ -1,5 +1,6 @@
 ﻿using CodingCat.RabbitMq.Impls;
 using CodingCat.RabbitMq.Tests.Abstracts;
+using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -87,6 +88,39 @@ namespace CodingCat.RabbitMq.Tests
             Assert.AreEqual(expected, actual);
 
             queue.Channel.BasicCancel(consumer.ConsumerTag);
+            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Dispose();
+        }
+        
+        [TestMethod]
+        public void Test_BasicPublisher_Receive_Ok()
+        {
+            // Arrange
+            var expected = Guid.NewGuid().ToString();
+
+            var queue = new QueueProperty()
+            {
+                Name = QUEUE_NAME,
+                IsAutoDelete = true,
+                IsDurable = false
+            }.Declare(this.Connection);
+            var publisher = new StringPublisher(queue);
+
+            // Act
+            publisher.Send(expected);
+
+            var message = queue.Channel.BasicGet(queue.Name, true);
+            var actual = null as string;
+            try
+            {
+                actual = publisher.InputSerializer.FromBytes(message.Body);
+            }
+            catch { }
+
+            // Assert
+            Assert.IsNotNull(message);
+            Assert.AreEqual(expected, actual);
+
             queue.Channel.QueueDelete(queue.Name, true, true);
             queue.Dispose();
         }
