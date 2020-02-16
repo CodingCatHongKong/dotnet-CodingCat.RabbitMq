@@ -10,9 +10,9 @@ namespace CodingCat.RabbitMq.Impls
         public string Name { get; set; }
         public string BindingKey { get; set; }
 
-        public bool IsDurable { get; set; }
-        public bool IsExclusive { get; set; }
-        public bool IsAutoDelete { get; set; }
+        public bool IsDurable { get; set; } = true;
+        public bool IsExclusive { get; set; } = false;
+        public bool IsAutoDelete { get; set; } = false;
         public IDictionary<string, object> Arguments { get; set; }
 
         public IQueue Declare(IConnection connection)
