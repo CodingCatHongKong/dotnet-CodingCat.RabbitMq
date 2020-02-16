@@ -2,7 +2,7 @@
 
 namespace CodingCat.RabbitMq.Interfaces
 {
-    public interface IExchange
+    public interface IExchange : IExchangeProperty
     {
         IModel Channel { get; }
     }

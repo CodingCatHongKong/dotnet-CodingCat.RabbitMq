@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace CodingCat.RabbitMq.Impls
 {
-    public class BasicQueue : IQueue, IQueueProperty
+    public class BasicQueue : IQueue
     {
         public IModel Channel { get; private set; }
 
@@ -32,7 +32,7 @@ namespace CodingCat.RabbitMq.Impls
 
         #endregion Constructor(s)
 
-        internal IQueue Declare(IConnection connection)
+        internal BasicQueue Declare(IConnection connection)
         {
             this.Channel = connection.CreateModel();
             this.Channel.QueueDeclare(

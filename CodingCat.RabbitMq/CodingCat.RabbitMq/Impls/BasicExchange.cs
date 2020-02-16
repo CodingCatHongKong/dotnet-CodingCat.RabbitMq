@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace CodingCat.RabbitMq.Impls
 {
-    public class BasicExchange : IExchange, IExchangeProperty
+    public class BasicExchange : IExchange
     {
         public IModel Channel { get; private set; }
 
@@ -29,7 +29,7 @@ namespace CodingCat.RabbitMq.Impls
 
         #endregion Constructor(s)
 
-        internal IExchange Declare(IConnection connection)
+        internal BasicExchange Declare(IConnection connection)
         {
             this.Channel = connection.CreateModel();
             this.Channel.ExchangeDeclare(
