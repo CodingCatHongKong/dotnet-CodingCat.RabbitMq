@@ -11,10 +11,7 @@ namespace CodingCat.RabbitMq.PubSub.Impls
     {
         public ISerializer<TInput> InputSerializer { get; set; }
 
-        public void Send(TInput input)
-        {
-            this.Send(input, null);
-        }
+        public void Send(TInput input) => this.Send(input, null);
 
         public void Send(TInput input, IBasicProperties properties)
         {
@@ -32,6 +29,8 @@ namespace CodingCat.RabbitMq.PubSub.Impls
 
         public ISerializer<TInput> InputSerializer { get; set; }
         public ISerializer<TOutput> OutputSerializer { get; set; }
+
+        public TOutput Send(TInput input) => this.Send(input, null);
 
         public TOutput Send(TInput input, IBasicProperties properties)
         {

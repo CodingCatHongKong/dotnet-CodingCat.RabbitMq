@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Abstracts\BaseTest.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Impls\IntRequester.cs" />
     <Compile Include="Impls\StringPublisher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDeclare.cs" />

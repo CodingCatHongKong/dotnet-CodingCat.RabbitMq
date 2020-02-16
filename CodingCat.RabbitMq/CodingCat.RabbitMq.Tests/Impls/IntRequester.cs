@@ -4,13 +4,15 @@ using CodingCat.Serializers.Impls;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class StringPublisher : BasicPublisher<string>
+    public class IntRequester : BasicPublisher<int, int>
     {
         #region Constructor(s)
-        public StringPublisher(IQueue declaredQueue)
+        public IntRequester(IQueue declaredQueue)
         {
             this.UsingQueue = declaredQueue;
-            this.InputSerializer = new StringSerializer();
+
+            this.InputSerializer = new Int32Serializer();
+            this.OutputSerializer = new Int32Serializer();
         }
         #endregion
     }

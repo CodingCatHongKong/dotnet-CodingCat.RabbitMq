@@ -7,6 +7,7 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.Tests
 {
@@ -119,6 +120,57 @@ namespace CodingCat.RabbitMq.Tests
 
             // Assert
             Assert.IsNotNull(message);
+            Assert.AreEqual(expected, actual);
+
+            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicPublisher_WithResponse_Ok()
+        {
+            // Arrange
+            var original = new Random().Next(0, 1000) - 1;
+            var expected = original + 1;
+
+            var resetEvent = new AutoResetEvent(false);
+            var queue = new QueueProperty()
+            {
+                Name = QUEUE_NAME,
+                IsAutoDelete = true,
+                IsDurable = false
+            }.Declare(this.Connection);
+            var publisher = new IntRequester(queue);
+
+            // Act
+            var actual = -1;
+            Task.Run(() =>
+            {
+                actual = publisher.Send(original);
+                resetEvent.Set();
+            });
+
+            try
+            {
+                var message = null as BasicGetResult;
+                while ((message = queue.Channel.BasicGet(queue.Name, true)) == null)
+                    Thread.Sleep(100);
+
+                var source = publisher.InputSerializer
+                    .FromBytes(message.Body);
+                queue.Channel.BasicPublish(
+                    exchange: "",
+                    routingKey: message.BasicProperties.ReplyTo,
+                    body: publisher.OutputSerializer.ToBytes(source + 1)
+                );
+            }
+            catch
+            {
+                resetEvent.Set();
+            }
+
+            // Assert
+            resetEvent.WaitOne();
             Assert.AreEqual(expected, actual);
 
             queue.Channel.QueueDelete(queue.Name, true, true);
