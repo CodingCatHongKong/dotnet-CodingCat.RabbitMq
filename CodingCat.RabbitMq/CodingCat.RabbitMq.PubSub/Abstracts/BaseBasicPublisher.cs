@@ -20,12 +20,13 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
                 );
 
             var exchangeName = this.ExchangeProperty?.Name ?? "";
+            var routingKey = this.RoutingKey ?? this.UsingQueue.Name;
             properties = this.GetOrCreateProperties(properties);
 
             this.UsingQueue.Channel
                 .BasicPublish(
                     exchange: exchangeName,
-                    routingKey: this.RoutingKey,
+                    routingKey: routingKey,
                     mandatory: this.IsMandatory,
                     basicProperties: properties,
                     body: body
