@@ -1,4 +1,5 @@
 ﻿using CodingCat.RabbitMq.Impls;
+using CodingCat.RabbitMq.Interfaces;
 using CodingCat.RabbitMq.Tests.Abstracts;
 using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,17 +17,21 @@ namespace CodingCat.RabbitMq.Tests
     {
         public const string QUEUE_NAME = nameof(TestPubSub);
 
-        [TestMethod]
-        public void Test_Publish_Receive_Ok()
+        public IQueue GetDeclaredQueue()
         {
-            // Arrange
-            var queue = new QueueProperty()
+            return new QueueProperty()
             {
                 Name = QUEUE_NAME,
                 IsAutoDelete = true,
                 IsDurable = false
             }.Declare(this.Connection);
+        }
 
+        [TestMethod]
+        public void Test_Publish_Receive_Ok()
+        {
+            // Arrange
+            var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
 
             queue.Channel.BasicPublish(
@@ -56,13 +61,7 @@ namespace CodingCat.RabbitMq.Tests
         public void Test_Subscription_Ok()
         {
             // Arrange
-            var queue = new QueueProperty()
-            {
-                Name = QUEUE_NAME,
-                IsAutoDelete = true,
-                IsDurable = false
-            }.Declare(this.Connection);
-
+            var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
 
             // Act
@@ -97,14 +96,8 @@ namespace CodingCat.RabbitMq.Tests
         public void Test_BasicPublisher_Receive_Ok()
         {
             // Arrange
+            var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
-
-            var queue = new QueueProperty()
-            {
-                Name = QUEUE_NAME,
-                IsAutoDelete = true,
-                IsDurable = false
-            }.Declare(this.Connection);
             var publisher = new StringPublisher(queue);
 
             // Act
@@ -134,12 +127,7 @@ namespace CodingCat.RabbitMq.Tests
             var expected = original + 1;
 
             var resetEvent = new AutoResetEvent(false);
-            var queue = new QueueProperty()
-            {
-                Name = QUEUE_NAME,
-                IsAutoDelete = true,
-                IsDurable = false
-            }.Declare(this.Connection);
+            var queue = this.GetDeclaredQueue();
             var publisher = new IntRequester(queue);
 
             // Act
