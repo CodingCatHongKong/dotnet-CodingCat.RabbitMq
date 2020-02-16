@@ -41,5 +41,11 @@ namespace CodingCat.RabbitMq.Impls
             );
             return this;
         }
+
+        public virtual void Dispose()
+        {
+            this.Channel?.Close();
+            this.Channel?.Dispose();
+        }
     }
 }

@@ -1,9 +1,10 @@
 ﻿using RabbitMQ.Client;
+using System;
 using System.Collections.Generic;
 
 namespace CodingCat.RabbitMq.Interfaces
 {
-    public interface IQueue : IQueueProperty
+    public interface IQueue : IQueueProperty, IDisposable
     {
         IModel Channel { get; }
 
