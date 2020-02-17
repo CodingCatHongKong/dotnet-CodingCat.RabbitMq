@@ -7,11 +7,13 @@ namespace CodingCat.RabbitMq.Tests.Impls
     public class StringPublisher : BasicPublisher<string>
     {
         #region Constructor(s)
+
         public StringPublisher(IQueue declaredQueue)
         {
             this.UsingQueue = declaredQueue;
             this.InputSerializer = new StringSerializer();
         }
-        #endregion
+
+        #endregion Constructor(s)
     }
 }

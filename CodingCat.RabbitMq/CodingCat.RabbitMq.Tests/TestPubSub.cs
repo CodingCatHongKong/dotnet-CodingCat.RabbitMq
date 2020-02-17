@@ -91,7 +91,7 @@ namespace CodingCat.RabbitMq.Tests
             queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
-        
+
         [TestMethod]
         public void Test_BasicPublisher_Receive_Ok()
         {
