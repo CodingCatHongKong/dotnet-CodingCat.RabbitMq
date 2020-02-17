@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.PubSub.Abstracts
 {
-    public abstract class BaseBasicPublisher
+    public abstract class BaseBasicPublisher : IDisposable
     {
+        public event EventHandler Disposing;
+
         public IExchangeProperty ExchangeProperty { get; set; }
         public IQueue UsingQueue { get; set; }
 
@@ -39,6 +41,13 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         protected IBasicProperties GetOrCreateProperties(
             IBasicProperties properties
         ) => properties ?? this.UsingQueue.Channel.CreateBasicProperties();
+
+        public void Dispose()
+        {
+            this.Disposing?.Invoke(this, null);
+
+            this.UsingQueue.Dispose();
+        }
     }
 
     public abstract class BaseBasicPublisher<TOutput> : BaseBasicPublisher

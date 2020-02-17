@@ -1,5 +1,6 @@
 ﻿using CodingCat.RabbitMq.Impls;
 using CodingCat.RabbitMq.Interfaces;
+using CodingCat.RabbitMq.PubSub.Abstracts;
 using CodingCat.RabbitMq.Tests.Abstracts;
 using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,9 +23,22 @@ namespace CodingCat.RabbitMq.Tests
             return new QueueProperty()
             {
                 Name = QUEUE_NAME,
-                IsAutoDelete = false,
+                IsAutoDelete = true,
                 IsDurable = false
             }.Declare(this.Connection);
+        }
+
+        public static BaseBasicPublisher MockDispose(
+            BaseBasicPublisher publisher
+        )
+        {
+            publisher.Disposing += (sender, eventArgs) =>
+            {
+                var queue = publisher.UsingQueue;
+                queue.Channel.QueueDelete(queue.Name, false, false);
+                queue.Dispose();
+            };
+            return publisher;
         }
 
         [TestMethod]
@@ -99,6 +113,7 @@ namespace CodingCat.RabbitMq.Tests
             var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
             var publisher = new StringPublisher(queue);
+            MockDispose(publisher);
 
             // Act
             publisher.Send(expected);
@@ -114,9 +129,7 @@ namespace CodingCat.RabbitMq.Tests
             // Assert
             Assert.IsNotNull(message);
             Assert.AreEqual(expected, actual);
-
-            queue.Channel.QueueDelete(queue.Name, false, false);
-            queue.Dispose();
+            publisher.Dispose();
         }
 
         [TestMethod]
@@ -129,6 +142,7 @@ namespace CodingCat.RabbitMq.Tests
             var resetEvent = new AutoResetEvent(false);
             var queue = this.GetDeclaredQueue();
             var publisher = new IntRequester(queue);
+            MockDispose(publisher);
 
             // Act
             var actual = -1;
@@ -160,9 +174,7 @@ namespace CodingCat.RabbitMq.Tests
             // Assert
             resetEvent.WaitOne();
             Assert.AreEqual(expected, actual);
-
-            queue.Channel.QueueDelete(queue.Name, false, false);
-            queue.Dispose();
+            publisher.Dispose();
         }
 
         [TestMethod]
@@ -178,15 +190,14 @@ namespace CodingCat.RabbitMq.Tests
                 Timeout = TimeSpan.FromSeconds(2),
                 DefaultValue = expected
             };
+            MockDispose(publisher);
 
             // Act
             var actual = publisher.Process(input);
 
             // Assert
             Assert.AreEqual(expected, actual);
-
-            queue.Channel.QueueDelete(queue.Name, false, false);
-            queue.Dispose();
+            publisher.Dispose();
         }
     }
 }
