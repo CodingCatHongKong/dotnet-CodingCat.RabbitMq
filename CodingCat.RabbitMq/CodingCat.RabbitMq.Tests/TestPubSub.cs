@@ -22,7 +22,7 @@ namespace CodingCat.RabbitMq.Tests
             return new QueueProperty()
             {
                 Name = QUEUE_NAME,
-                IsAutoDelete = true,
+                IsAutoDelete = false,
                 IsDurable = false
             }.Declare(this.Connection);
         }
@@ -53,7 +53,7 @@ namespace CodingCat.RabbitMq.Tests
             Assert.IsNotNull(message);
             Assert.AreEqual(expected, actual);
 
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
 
@@ -88,7 +88,7 @@ namespace CodingCat.RabbitMq.Tests
             Assert.AreEqual(expected, actual);
 
             queue.Channel.BasicCancel(consumer.ConsumerTag);
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
         
@@ -115,7 +115,7 @@ namespace CodingCat.RabbitMq.Tests
             Assert.IsNotNull(message);
             Assert.AreEqual(expected, actual);
 
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
 
@@ -134,7 +134,7 @@ namespace CodingCat.RabbitMq.Tests
             var actual = -1;
             Task.Run(() =>
             {
-                actual = publisher.Send(original);
+                actual = publisher.Process(original);
                 resetEvent.Set();
             });
 
@@ -161,7 +161,31 @@ namespace CodingCat.RabbitMq.Tests
             resetEvent.WaitOne();
             Assert.AreEqual(expected, actual);
 
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
+            queue.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicPublisher_WithTimeout_Ok()
+        {
+            // Arrange
+            var input = new Random().Next(0, 1000);
+            var expected = input + 1;
+
+            var queue = this.GetDeclaredQueue();
+            var publisher = new IntRequester(queue)
+            {
+                Timeout = TimeSpan.FromSeconds(2),
+                DefaultValue = expected
+            };
+
+            // Act
+            var actual = publisher.Process(input);
+
+            // Assert
+            Assert.AreEqual(expected, actual);
+
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
     }

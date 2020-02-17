@@ -1,9 +1,7 @@
 ﻿using CodingCat.RabbitMq.PubSub.Abstracts;
 using CodingCat.Serializers.Interfaces;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
-using System.Threading;
 
 namespace CodingCat.RabbitMq.PubSub.Impls
 {
@@ -20,59 +18,23 @@ namespace CodingCat.RabbitMq.PubSub.Impls
         }
     }
 
-    public class BasicPublisher<TInput, TOutput> : BaseBasicPublisher
+    public class BasicPublisher<TInput, TOutput> : BaseBasicPublisher<TOutput>
     {
-        public const string REPLY_HEADER = "reply-to";
-
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
-        public TOutput DefaultValue { get; set; }
-
         public ISerializer<TInput> InputSerializer { get; set; }
-        public ISerializer<TOutput> OutputSerializer { get; set; }
 
-        public TOutput Send(TInput input) => this.Send(input, null);
-
-        public TOutput Send(TInput input, IBasicProperties properties)
+        public override void OnReceiveError(Exception exception)
         {
-            var queueName = this.UsingQueue.Channel.QueueDeclare(
-                queue: string.Empty,
-                durable: false,
-                exclusive: false,
-                autoDelete: true
-            ).QueueName;
-
-            var body = this.InputSerializer.ToBytes(input);
-            properties = this.GetOrCreateProperties(properties);
-            properties.ReplyTo = queueName;
-
-            this.Publish(body, properties);
-
-            return this.Subscribe(queueName);
+            Console.WriteLine(DateTime.Now);
+            Console.WriteLine(exception.Message);
+            Console.WriteLine(exception.StackTrace);
         }
 
-        private TOutput Subscribe(string queueName)
+        public TOutput Process(TInput input) => this.Process(input, null);
+
+        public TOutput Process(TInput input, IBasicProperties properties)
         {
-            var reset = new AutoResetEvent(false);
-            var output = this.DefaultValue;
-
-            var channel = this.UsingQueue.Channel;
-            var consumer = new EventingBasicConsumer(channel);
-
-            consumer.Received += (sender, @event) =>
-            {
-                try
-                {
-                    output = this.OutputSerializer.FromBytes(@event.Body);
-                }
-                catch { }
-
-                reset.Set();
-                channel.BasicCancel(consumer.ConsumerTag);
-            };
-            channel.BasicConsume(queueName, true, consumer);
-
-            reset.WaitOne();
-            return output;
+            var body = this.InputSerializer.ToBytes(input);
+            return this.Process(body, properties);
         }
     }
 }
