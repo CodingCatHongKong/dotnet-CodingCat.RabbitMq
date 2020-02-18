@@ -1,11 +1,8 @@
-﻿using CodingCat.RabbitMq.Impls;
-using CodingCat.RabbitMq.Tests.Abstracts;
+﻿using CodingCat.RabbitMq.Tests.Abstracts;
 using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
