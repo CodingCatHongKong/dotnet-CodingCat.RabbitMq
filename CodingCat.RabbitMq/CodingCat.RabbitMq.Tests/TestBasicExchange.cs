@@ -6,47 +6,68 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Text;
 using System.Threading;
+using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 
 namespace CodingCat.RabbitMq.Tests
 {
     [TestClass]
-    public class TestBasicQueue : BaseTest
+    public class TestBasicExchange : BaseTest
     {
-        public const string QUEUE_NAME = nameof(TestBasicQueue);
+        public const string QUEUE_NAME = nameof(TestBasicExchange);
 
         public override string QueueName => QUEUE_NAME;
 
         [TestMethod]
-        public void Test_QueueDeclare_Ok()
+        public void Test_ExchangeDeclare_Ok()
         {
             // Arrange
-            var properties = new QueueProperty()
+            var exchangeName = $"{this.QueueName}.direct";
+            var queueProperties = new QueueProperty()
             {
                 Name = QUEUE_NAME,
+                BindingKey = Guid.NewGuid().ToString(),
                 IsAutoDelete = true,
                 IsDurable = false
             };
+            var exchangeProperties = new ExchangeProperty()
+            {
+                Name = exchangeName,
+                IsAutoDelete = true,
+                IsDurable = false,
+                ExchangeType = ExchangeType.Direct
+            };
 
             // Act
-            using (var queue = properties.Declare(this.Connection))
+            using (var exchange = exchangeProperties.Declare(this.Connection))
             {
-                queue.Channel.QueueDeclarePassive(QUEUE_NAME);
-                queue.Channel.QueueDelete(QUEUE_NAME, true, true);
+                using (var queue = queueProperties.Declare(this.Connection))
+                {
+                    queue.Bind(exchange);
+                    exchange.Channel.ExchangeDeclarePassive(exchangeName);
+
+                    queue.Channel.QueueDelete(QUEUE_NAME, true, true);
+                }
+                exchange.Channel.ExchangeDelete(exchangeName, true);
             }
 
             // Assert
         }
 
         [TestMethod]
-        public void Test_Publish_Receive_Ok()
+        public void Test_Publish_DirectExchange_Receive_Ok()
         {
             // Arrange
-            var queue = this.GetDeclaredQueue();
+            var bindingKey = Guid.NewGuid().ToString();
+            var exchange = this.GetDeclaredExchange(
+                ExchangeType.Direct
+            );
+            var queue = this.GetDeclaredQueue(bindingKey)
+                .Bind(exchange);
             var expected = Guid.NewGuid().ToString();
 
             queue.Channel.BasicPublish(
-                exchange: "",
-                routingKey: queue.Name,
+                exchange: exchange.Name,
+                routingKey: bindingKey,
                 body: Encoding.UTF8.GetBytes(expected)
             );
 
@@ -65,13 +86,21 @@ namespace CodingCat.RabbitMq.Tests
 
             queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
+
+            exchange.Channel.ExchangeDelete(exchange.Name, false);
+            exchange.Dispose();
         }
 
         [TestMethod]
-        public void Test_Subscription_Ok()
+        public void Test_DirectExchange_Subscription_Ok()
         {
             // Arrange
-            var queue = this.GetDeclaredQueue();
+            var bindingKey = Guid.NewGuid().ToString();
+            var exchange = this.GetDeclaredExchange(
+                ExchangeType.Direct
+            );
+            var queue = this.GetDeclaredQueue(bindingKey)
+                .Bind(exchange);
             var expected = Guid.NewGuid().ToString();
 
             // Act
@@ -88,8 +117,8 @@ namespace CodingCat.RabbitMq.Tests
 
             queue.Channel.BasicConsume(queue.Name, true, consumer);
             queue.Channel.BasicPublish(
-                exchange: "",
-                routingKey: queue.Name,
+                exchange: exchange.Name,
+                routingKey: bindingKey,
                 body: Encoding.UTF8.GetBytes(expected)
             );
 
@@ -100,6 +129,9 @@ namespace CodingCat.RabbitMq.Tests
             queue.Channel.BasicCancel(consumer.ConsumerTag);
             queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
+
+            exchange.Channel.ExchangeDelete(exchange.Name, false);
+            exchange.Dispose();
         }
     }
 }

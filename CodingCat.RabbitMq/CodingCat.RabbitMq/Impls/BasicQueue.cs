@@ -58,8 +58,7 @@ namespace CodingCat.RabbitMq.Impls
             this.Channel.QueueBind(
                 this.Name,
                 exchange: properties.Name,
-                routingKey: this.BindingKey,
-                arguments: arguments
+                routingKey: this.BindingKey
             );
             return this;
         }

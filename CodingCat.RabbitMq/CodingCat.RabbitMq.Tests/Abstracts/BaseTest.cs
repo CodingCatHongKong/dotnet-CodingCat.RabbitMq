@@ -3,6 +3,7 @@ using CodingCat.RabbitMq.Interfaces;
 using CodingCat.RabbitMq.PubSub.Abstracts;
 using RabbitMQ.Client;
 using System;
+using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 
 namespace CodingCat.RabbitMq.Tests.Abstracts
 {
@@ -24,13 +25,25 @@ namespace CodingCat.RabbitMq.Tests.Abstracts
 
         #endregion Constructor(s)
 
-        public IQueue GetDeclaredQueue()
+        public IQueue GetDeclaredQueue(string bindingKey = null)
         {
             return new QueueProperty()
             {
                 Name = this.QueueName,
+                BindingKey = bindingKey,
                 IsAutoDelete = true,
                 IsDurable = false
+            }.Declare(this.Connection);
+        }
+
+        public IExchange GetDeclaredExchange(ExchangeType exchangeType)
+        {
+            return new ExchangeProperty()
+            {
+                Name = $"{this.QueueName}.{exchangeType.ToString().ToLower()}",
+                IsAutoDelete = true,
+                IsDurable = false,
+                ExchangeType = exchangeType
             }.Declare(this.Connection);
         }
 
