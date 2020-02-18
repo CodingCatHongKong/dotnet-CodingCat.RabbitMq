@@ -1,14 +1,17 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
 using CodingCat.RabbitMq.PubSub.Impls;
 using CodingCat.Serializers.Impls;
+using System;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class IntRequester : BasicPublisher<int, int>
+    public class IntPublisher : BasicPublisher<int, int>
     {
+        public Exception LastException { get; private set; }
+
         #region Constructor(s)
 
-        public IntRequester(IQueue declaredQueue)
+        public IntPublisher(IQueue declaredQueue)
         {
             this.UsingQueue = declaredQueue;
 
@@ -17,5 +20,11 @@ namespace CodingCat.RabbitMq.Tests.Impls
         }
 
         #endregion Constructor(s)
+
+        public override void OnReceiveError(Exception exception)
+        {
+            base.OnReceiveError(exception);
+            this.LastException = exception;
+        }
     }
 }

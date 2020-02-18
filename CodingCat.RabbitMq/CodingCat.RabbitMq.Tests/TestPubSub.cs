@@ -41,6 +41,17 @@ namespace CodingCat.RabbitMq.Tests
             return publisher;
         }
 
+        public static BaseBasicSubscriber MockDispose(
+            BaseBasicSubscriber subscriber
+        )
+        {
+            subscriber.Disposing += (sender, eventArgs) =>
+            {
+                subscriber.UsingQueue.Dispose();
+            };
+            return subscriber;
+        }
+
         [TestMethod]
         public void Test_Publish_Receive_Ok()
         {
@@ -136,20 +147,20 @@ namespace CodingCat.RabbitMq.Tests
         public void Test_BasicPublisher_WithResponse_Ok()
         {
             // Arrange
-            var original = new Random().Next(0, 1000) - 1;
-            var expected = original + 1;
+            var input = new Random().Next(0, 1000) - 1;
+            var expected = input + 1;
 
-            var resetEvent = new AutoResetEvent(false);
+            var responseEvent = new AutoResetEvent(false);
             var queue = this.GetDeclaredQueue();
-            var publisher = new IntRequester(queue);
+            var publisher = new IntPublisher(queue);
             MockDispose(publisher);
 
             // Act
             var actual = -1;
             Task.Run(() =>
             {
-                actual = publisher.Process(original);
-                resetEvent.Set();
+                actual = publisher.Process(input);
+                responseEvent.Set();
             });
 
             try
@@ -168,12 +179,60 @@ namespace CodingCat.RabbitMq.Tests
             }
             catch
             {
-                resetEvent.Set();
+                responseEvent.Set();
             }
 
             // Assert
-            resetEvent.WaitOne();
+            responseEvent.WaitOne();
             Assert.AreEqual(expected, actual);
+            publisher.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicPublisher_WithResponse_Exception_Ok()
+        {
+            // Arrange
+            var input = new Random().Next(0, 1000) - 1;
+            var expected = input + 1;
+
+            var responseEvent = new AutoResetEvent(false);
+            var queue = this.GetDeclaredQueue();
+            var publisher = new IntPublisher(queue)
+            {
+                OutputSerializer = new DeserializeNotImplementedSerializer<int>()
+            };
+            MockDispose(publisher);
+
+            // Act
+            var actual = -1;
+            Task.Run(() =>
+            {
+                actual = publisher.Process(input);
+                responseEvent.Set();
+            });
+
+            try
+            {
+                var message = null as BasicGetResult;
+                while ((message = queue.Channel.BasicGet(queue.Name, true)) == null)
+                    Thread.Sleep(100);
+
+                var source = publisher.InputSerializer
+                    .FromBytes(message.Body);
+                queue.Channel.BasicPublish(
+                    exchange: "",
+                    routingKey: message.BasicProperties.ReplyTo,
+                    body: publisher.OutputSerializer.ToBytes(source + 1)
+                );
+            }
+            catch
+            {
+                responseEvent.Set();
+            }
+
+            // Assert
+            responseEvent.WaitOne();
+            Assert.IsNotNull(publisher.LastException);
             publisher.Dispose();
         }
 
@@ -185,7 +244,7 @@ namespace CodingCat.RabbitMq.Tests
             var expected = input + 1;
 
             var queue = this.GetDeclaredQueue();
-            var publisher = new IntRequester(queue)
+            var publisher = new IntPublisher(queue)
             {
                 Timeout = TimeSpan.FromSeconds(2),
                 DefaultValue = expected
@@ -197,6 +256,134 @@ namespace CodingCat.RabbitMq.Tests
 
             // Assert
             Assert.AreEqual(expected, actual);
+            publisher.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicSubscriber_Ok()
+        {
+            // Arrange
+            var responseEvent = new AutoResetEvent(false);
+            var expected = Guid.NewGuid().ToString();
+
+            var publisher = new StringPublisher(GetDeclaredQueue());
+            var subscriber = new StringSubscriber(GetDeclaredQueue());
+
+            MockDispose(publisher);
+            MockDispose(subscriber);
+            subscriber.MessageCompleted += (sender, args) => responseEvent.Set();
+
+            // Act
+            publisher.Send(expected);
+            subscriber.Subscribe();
+
+            responseEvent.WaitOne();
+            var actual = subscriber.LastInput;
+
+            // Assert
+            Assert.AreEqual(expected, actual);
+            subscriber.Dispose();
+            publisher.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicSubscriber_WithException_Ok()
+        {
+            // Arrange
+            var responseEvent = new AutoResetEvent(false);
+
+            var publisher = new StringPublisher(GetDeclaredQueue());
+            var subscriber = new StringSubscriber(GetDeclaredQueue())
+            {
+                InputSerializer = new DeserializeNotImplementedSerializer()
+            };
+
+            MockDispose(publisher);
+            MockDispose(subscriber);
+            subscriber.MessageCompleted += (sender, args) => responseEvent.Set();
+
+            // Act
+            publisher.Send("");
+            subscriber.Subscribe();
+
+            responseEvent.WaitOne();
+            var actual = subscriber.LastInput;
+
+            // Assert
+            Assert.IsNotNull(subscriber.LastException);
+            subscriber.Dispose();
+            publisher.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicSubscriber_WithResponse_Ok()
+        {
+            // Arrange
+            var input = new Random().Next(0, 1000);
+            var expected = input + 1;
+            var responseEvent = new AutoResetEvent(false);
+
+            var publisherQueue = GetDeclaredQueue();
+            var subscriberQueue = GetDeclaredQueue();
+
+            var publisher = new IntPublisher(publisherQueue);
+            var subscriber = new IntSubscriber(subscriberQueue);
+
+            MockDispose(publisher);
+            MockDispose(subscriber);
+
+            // Act
+            var actual = -1;
+
+            Task.Run(() =>
+            {
+                actual = publisher.Process(input);
+                responseEvent.Set();
+            });
+            subscriber.Subscribe();
+
+            // Assert
+            responseEvent.WaitOne();
+            Assert.AreEqual(expected, actual);
+
+            subscriber.Dispose();
+            publisher.Dispose();
+        }
+
+        [TestMethod]
+        public void Test_BasicSubscriber_Timeout_Ok()
+        {
+            // Arrange
+            var publisherQueue = GetDeclaredQueue();
+            var subscriberQueue = GetDeclaredQueue();
+
+            var publisher = new IntPublisher(publisherQueue);
+            var subscriber = new IntTimeoutSubscriber(subscriberQueue)
+            {
+                Timeout = TimeSpan.FromMilliseconds(0)
+            };
+
+            var responseEvent = new AutoResetEvent(false);
+            var expected = subscriber.DefaultOutput;
+
+            MockDispose(publisher);
+            MockDispose(subscriber);
+
+            // Act
+            var actual = 999;
+
+            Task.Run(() =>
+            {
+                actual = publisher.Process(actual);
+                responseEvent.Set();
+            });
+            subscriber.Subscribe();
+
+            // Assert
+            responseEvent.WaitOne();
+            Assert.AreEqual(expected, actual);
+
+            subscriber.Dispose();
             publisher.Dispose();
         }
     }

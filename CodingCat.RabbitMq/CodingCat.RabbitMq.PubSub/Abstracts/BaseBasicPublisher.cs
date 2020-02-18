@@ -45,7 +45,6 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         public void Dispose()
         {
             this.Disposing?.Invoke(this, null);
-
             this.UsingQueue.Dispose();
         }
     }
@@ -53,7 +52,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
     public abstract class BaseBasicPublisher<TOutput> : BaseBasicPublisher
     {
         public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
-        public TOutput DefaultValue { get; set; }
+        public TOutput DefaultValue { get; set; } = default(TOutput);
 
         public ISerializer<TOutput> OutputSerializer { get; set; }
 
@@ -114,7 +113,6 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             });
 
             responsedEvent.WaitOne();
-
             channel.QueueDelete(replyTo, false, false);
             return output;
         }
