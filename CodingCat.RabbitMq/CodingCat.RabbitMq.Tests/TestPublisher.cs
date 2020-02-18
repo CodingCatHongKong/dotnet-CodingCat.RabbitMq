@@ -145,7 +145,7 @@ namespace CodingCat.RabbitMq.Tests
             var publisher = new IntPublisher(queue)
             {
                 Timeout = TimeSpan.FromSeconds(2),
-                DefaultValue = expected
+                DefaultOutput = expected
             };
             MockDispose(publisher);
 
