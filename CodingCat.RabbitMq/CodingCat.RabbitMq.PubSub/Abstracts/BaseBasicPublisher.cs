@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.PubSub.Abstracts
 {
-    public abstract class BaseBasicPublisher : IPubSub
+    public abstract class BaseBasicPublisher : IPubSub, IPublisher
     {
         public event EventHandler Disposing;
 
-        public IExchangeProperty ExchangeProperty { get; set; }
         public IQueue UsingQueue { get; set; }
+        public IExchangeProperty ExchangeProperty { get; set; }
 
         public string RoutingKey { get; set; } = null;
         public bool IsMandatory { get; set; } = false;
@@ -41,7 +41,11 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
 
         protected IBasicProperties GetOrCreateProperties(
             IBasicProperties properties
-        ) => properties ?? this.UsingQueue.Channel.CreateBasicProperties();
+        )
+        {
+            return properties ??
+                this.UsingQueue.Channel.CreateBasicProperties();
+        }
 
         public void Dispose()
         {
@@ -51,13 +55,11 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
     }
 
     public abstract class BaseBasicPublisher<TInput>
-        : BaseBasicPublisher, IPubSub<TInput>
+        : BaseBasicPublisher, IPubSub<TInput>, IPublisher<TInput>
     {
         public ISerializer<TInput> InputSerializer { get; set; }
 
-        public void Send(TInput input) => this.Send(input, null);
-
-        public void Send(TInput input, IBasicProperties properties)
+        public void Send(TInput input, IBasicProperties properties = null)
         {
             var body = this.InputSerializer.ToBytes(input);
             this.Publish(body, properties);
@@ -65,15 +67,19 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
     }
 
     public abstract class BaseBasicPublisher<TInput, TOutput>
-        : BaseBasicPublisher, IPubSub<TInput, TOutput>
+        : BaseBasicPublisher, IPubSub<TInput, TOutput>, IPublisher<TInput, TOutput>
     {
-        public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
-        public TOutput DefaultValue { get; set; } = default(TOutput);
-
+        public const int DEFAULT_TIMEOUT_IN_SECONDS = 90;
+        public const int DEFAULT_CHECK_REPLY_INTERVAL_IN_MILLISECONDS = 5;
+        
         public ISerializer<TInput> InputSerializer { get; set; }
         public ISerializer<TOutput> OutputSerializer { get; set; }
+        public TOutput DefaultOutput { get; set; } = default(TOutput);
 
-        public abstract void OnReceiveError(Exception exception);
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(DEFAULT_TIMEOUT_IN_SECONDS);
+        public TimeSpan CheckReplyInterval { get; set; } = TimeSpan.FromMilliseconds(DEFAULT_CHECK_REPLY_INTERVAL_IN_MILLISECONDS);
+
+        protected abstract void OnReceiveError(Exception exception);
 
         public virtual TOutput Process(
             TInput input,
@@ -103,10 +109,10 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             return this.Receive(replyTo);
         }
 
-        protected TOutput Receive(string replyTo)
+        protected virtual TOutput Receive(string replyTo)
         {
             var responsedEvent = new AutoResetEvent(false);
-            var output = this.DefaultValue;
+            var output = this.DefaultOutput;
 
             var isTimedOut = false;
             var channel = this.UsingQueue.Channel;
@@ -120,14 +126,16 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
                 {
                     if (isTimedOut) break;
                     message = channel.BasicGet(replyTo, true);
+                    Thread.Sleep(this.CheckReplyInterval);
                 }
 
                 if (message != null)
                 {
                     try
                     {
-                        output = this.OutputSerializer
-                            .FromBytes(message.Body);
+                        output = this.OutputSerializer.FromBytes(
+                            message.Body
+                        );
                     }
                     catch (Exception ex)
                     {

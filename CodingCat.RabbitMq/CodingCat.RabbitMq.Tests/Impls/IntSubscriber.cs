@@ -25,7 +25,7 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         #endregion Constructor(s)
 
-        public override void OnSubscribeException(Exception exception)
+        protected override void OnSubscribeException(Exception exception)
         {
             Console.WriteLine(DateTime.Now);
             Console.WriteLine(exception.Message);

@@ -30,7 +30,7 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         #endregion Constructor(s)
 
-        public override void OnReceiveError(Exception exception)
+        protected override void OnReceiveError(Exception exception)
         {
             this.LastException = exception;
         }
