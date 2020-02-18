@@ -66,12 +66,15 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         }
     }
 
-    public abstract class BaseBasicPublisher<TInput, TOutput>
-        : BaseBasicPublisher, IPubSub<TInput, TOutput>, IPublisher<TInput, TOutput>
+    public abstract class BaseBasicPublisher<TInput, TOutput> :
+        BaseBasicPublisher,
+        IPubSub<TInput, TOutput>,
+        IPublisher<TInput, TOutput>,
+        ITimeoutPubSub
     {
         public const int DEFAULT_TIMEOUT_IN_SECONDS = 90;
         public const int DEFAULT_CHECK_REPLY_INTERVAL_IN_MILLISECONDS = 5;
-        
+
         public ISerializer<TInput> InputSerializer { get; set; }
         public ISerializer<TOutput> OutputSerializer { get; set; }
         public TOutput DefaultOutput { get; set; } = default(TOutput);

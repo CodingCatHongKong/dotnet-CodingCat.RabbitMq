@@ -22,6 +22,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(DEFAULT_TIMEOUT_IN_SECONDS);
 
         public event EventHandler MessageCompleted;
+
         public event EventHandler Disposing;
 
         public IQueue UsingQueue { get; set; }
