@@ -10,21 +10,38 @@ using System.Threading;
 namespace CodingCat.RabbitMq.Tests
 {
     [TestClass]
-    public class TestPubSub : BaseTest
+    public class TestBasicQueue : BaseTest
     {
-        public const string QUEUE_NAME = nameof(TestPubSub);
+        public const string QUEUE_NAME = nameof(TestBasicQueue);
+
+        public override string QueueName => QUEUE_NAME;
+
+        [TestMethod]
+        public void Test_QueueDeclare_Ok()
+        {
+            // Arrange
+            var properties = new QueueProperty()
+            {
+                Name = QUEUE_NAME,
+                IsAutoDelete = true,
+                IsDurable = false
+            };
+
+            // Act
+            using (var queue = properties.Declare(this.Connection))
+            {
+                queue.Channel.QueueDeclarePassive(QUEUE_NAME);
+                queue.Channel.QueueDelete(QUEUE_NAME, true, true);
+            }
+
+            // Assert
+        }
 
         [TestMethod]
         public void Test_Publish_Receive_Ok()
         {
             // Arrange
-            var queue = new QueueProperty()
-            {
-                Name = QUEUE_NAME,
-                IsAutoDelete = true,
-                IsDurable = false
-            }.Declare(this.Connection);
-
+            var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
 
             queue.Channel.BasicPublish(
@@ -46,7 +63,7 @@ namespace CodingCat.RabbitMq.Tests
             Assert.IsNotNull(message);
             Assert.AreEqual(expected, actual);
 
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
 
@@ -54,13 +71,7 @@ namespace CodingCat.RabbitMq.Tests
         public void Test_Subscription_Ok()
         {
             // Arrange
-            var queue = new QueueProperty()
-            {
-                Name = QUEUE_NAME,
-                IsAutoDelete = true,
-                IsDurable = false
-            }.Declare(this.Connection);
-
+            var queue = this.GetDeclaredQueue();
             var expected = Guid.NewGuid().ToString();
 
             // Act
@@ -87,7 +98,7 @@ namespace CodingCat.RabbitMq.Tests
             Assert.AreEqual(expected, actual);
 
             queue.Channel.BasicCancel(consumer.ConsumerTag);
-            queue.Channel.QueueDelete(queue.Name, true, true);
+            queue.Channel.QueueDelete(queue.Name, false, false);
             queue.Dispose();
         }
     }
