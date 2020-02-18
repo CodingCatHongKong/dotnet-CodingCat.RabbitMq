@@ -15,7 +15,7 @@ namespace CodingCat.RabbitMq.Tests
     {
         public const string QUEUE_NAME = nameof(TestBasicQueue);
         public static readonly string ExchangeName = $"{QUEUE_NAME}.direct";
-        
+
         public override string QueueName => QUEUE_NAME;
 
         [TestMethod]

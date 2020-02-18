@@ -1,10 +1,10 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using CodingCat.RabbitMq.Tests.Abstracts;
+﻿using CodingCat.RabbitMq.Tests.Abstracts;
 using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RabbitMQ.Client;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.Tests
 {

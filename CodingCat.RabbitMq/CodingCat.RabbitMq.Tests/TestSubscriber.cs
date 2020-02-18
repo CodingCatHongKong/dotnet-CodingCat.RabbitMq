@@ -1,22 +1,16 @@
-﻿using CodingCat.RabbitMq.Impls;
-using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
-using CodingCat.RabbitMq.Tests.Abstracts;
+﻿using CodingCat.RabbitMq.Tests.Abstracts;
 using CodingCat.RabbitMq.Tests.Impls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.Tests
 {
     [TestClass]
-    public class TestPubSub : BaseTest
+    public class TestSubscriber : BaseTest
     {
-        public const string QUEUE_NAME = nameof(TestPubSub);
+        public const string QUEUE_NAME = nameof(TestSubscriber);
 
         public override string QueueName => QUEUE_NAME;
 
