@@ -1,10 +1,10 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Impls;
+using CodingCat.RabbitMq.PubSub.Abstracts;
 using CodingCat.Serializers.Impls;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class StringPublisher : BasicPublisher<string>
+    public class StringPublisher : BaseBasicPublisher<string>
     {
         #region Constructor(s)
 

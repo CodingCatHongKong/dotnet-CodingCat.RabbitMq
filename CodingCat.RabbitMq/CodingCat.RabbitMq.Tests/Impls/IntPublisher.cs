@@ -1,11 +1,11 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Impls;
+using CodingCat.RabbitMq.PubSub.Abstracts;
 using CodingCat.Serializers.Impls;
 using System;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class IntPublisher : BasicPublisher<int, int>
+    public class IntPublisher : BaseBasicPublisher<int, int>
     {
         public Exception LastException { get; private set; }
 
@@ -32,7 +32,6 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         public override void OnReceiveError(Exception exception)
         {
-            base.OnReceiveError(exception);
             this.LastException = exception;
         }
     }

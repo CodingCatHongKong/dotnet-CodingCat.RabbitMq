@@ -1,4 +1,5 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
+using CodingCat.RabbitMq.PubSub.Interfaces;
 using CodingCat.Serializers.Interfaces;
 using RabbitMQ.Client;
 using System;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CodingCat.RabbitMq.PubSub.Abstracts
 {
-    public abstract class BaseBasicPublisher : IDisposable
+    public abstract class BaseBasicPublisher : IPubSub
     {
         public event EventHandler Disposing;
 
@@ -49,14 +50,39 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         }
     }
 
-    public abstract class BaseBasicPublisher<TOutput> : BaseBasicPublisher
+    public abstract class BaseBasicPublisher<TInput>
+        : BaseBasicPublisher, IPubSub<TInput>
+    {
+        public ISerializer<TInput> InputSerializer { get; set; }
+
+        public void Send(TInput input) => this.Send(input, null);
+
+        public void Send(TInput input, IBasicProperties properties)
+        {
+            var body = this.InputSerializer.ToBytes(input);
+            this.Publish(body, properties);
+        }
+    }
+
+    public abstract class BaseBasicPublisher<TInput, TOutput>
+        : BaseBasicPublisher, IPubSub<TInput, TOutput>
     {
         public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
         public TOutput DefaultValue { get; set; } = default(TOutput);
 
+        public ISerializer<TInput> InputSerializer { get; set; }
         public ISerializer<TOutput> OutputSerializer { get; set; }
 
         public abstract void OnReceiveError(Exception exception);
+
+        public virtual TOutput Process(
+            TInput input,
+            IBasicProperties properties = null
+        )
+        {
+            var body = this.InputSerializer.ToBytes(input);
+            return this.Process(body, properties);
+        }
 
         protected virtual TOutput Process(
             byte[] body,
