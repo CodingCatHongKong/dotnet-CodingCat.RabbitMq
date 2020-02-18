@@ -66,7 +66,6 @@ namespace CodingCat.RabbitMq.Impls
 
         public virtual void Dispose()
         {
-            this.Channel?.Close();
             this.Channel?.Dispose();
         }
     }
