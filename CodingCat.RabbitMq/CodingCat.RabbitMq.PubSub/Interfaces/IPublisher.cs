@@ -18,7 +18,6 @@ namespace CodingCat.RabbitMq.PubSub.Interfaces
 
     public interface IPublisher<TInput, TOutput>
     {
-        TOutput DefaultOutput { get; }
         TimeSpan CheckReplyInterval { get; }
 
         TOutput Process(TInput input, IBasicProperties properties = null);

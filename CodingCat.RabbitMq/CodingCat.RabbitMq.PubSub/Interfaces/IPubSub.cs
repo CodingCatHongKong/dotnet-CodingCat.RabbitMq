@@ -19,5 +19,6 @@ namespace CodingCat.RabbitMq.PubSub.Interfaces
     public interface IPubSub<TInput, TOutput> : IPubSub<TInput>
     {
         ISerializer<TOutput> OutputSerializer { get; }
+        TOutput DefaultOutput { get; }
     }
 }
