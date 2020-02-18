@@ -14,9 +14,18 @@ namespace CodingCat.RabbitMq.Tests.Impls
         public IntPublisher(IQueue declaredQueue)
         {
             this.UsingQueue = declaredQueue;
+            this.RoutingKey = this.UsingQueue.BindingKey;
 
             this.InputSerializer = new Int32Serializer();
             this.OutputSerializer = new Int32Serializer();
+        }
+
+        public IntPublisher(
+            IExchangeProperty exchange,
+            IQueue declaredQueue
+        ) : this(declaredQueue)
+        {
+            this.ExchangeProperty = exchange;
         }
 
         #endregion Constructor(s)

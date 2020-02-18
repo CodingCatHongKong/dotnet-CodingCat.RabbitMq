@@ -74,6 +74,7 @@
     <Compile Include="TestSubscriber.cs" />
     <Compile Include="TestPublisher.cs" />
     <Compile Include="TestBasicExchange.cs" />
+    <Compile Include="TestExchangePubSub.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

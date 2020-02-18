@@ -14,7 +14,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         public IExchangeProperty ExchangeProperty { get; set; }
         public IQueue UsingQueue { get; set; }
 
-        public string RoutingKey { get; set; }
+        public string RoutingKey { get; set; } = null;
         public bool IsMandatory { get; set; } = false;
 
         protected void Publish(byte[] body, IBasicProperties properties)
