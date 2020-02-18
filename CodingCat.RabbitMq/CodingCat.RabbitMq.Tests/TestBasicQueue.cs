@@ -7,9 +7,9 @@ using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 namespace CodingCat.RabbitMq.Tests
 {
     [TestClass]
-    public class TestDeclare : BaseTest
+    public class TestBasicQueue : BaseTest
     {
-        public const string QUEUE_NAME = nameof(TestDeclare);
+        public const string QUEUE_NAME = nameof(TestBasicQueue);
         public static readonly string ExchangeName = $"{QUEUE_NAME}.direct";
 
         [TestMethod]
