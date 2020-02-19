@@ -25,7 +25,7 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         #endregion Constructor(s)
 
-        protected override void OnSubscribeException(Exception exception)
+        protected override void OnError(Exception exception)
         {
             Console.WriteLine(DateTime.Now);
             Console.WriteLine(exception.Message);
@@ -48,7 +48,7 @@ namespace CodingCat.RabbitMq.Tests.Impls
             }
             catch (Exception ex)
             {
-                this.OnSubscribeException(ex);
+                this.OnError(ex);
                 this.UsingQueue.Channel
                     .BasicReject(eventArgs.DeliveryTag, false);
             }

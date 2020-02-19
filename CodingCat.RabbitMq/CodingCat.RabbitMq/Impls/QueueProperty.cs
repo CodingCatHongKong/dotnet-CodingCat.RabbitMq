@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace CodingCat.RabbitMq.Impls
 {
     public class QueueProperty
-        : IQueueProperty, IDeclarable<IQueue>
+        : IQueueProperty, IDeclarable<BasicQueue>
     {
         public string Name { get; set; }
         public string BindingKey { get; set; }
@@ -15,7 +15,7 @@ namespace CodingCat.RabbitMq.Impls
         public bool IsAutoDelete { get; set; } = false;
         public IDictionary<string, object> Arguments { get; set; }
 
-        public IQueue Declare(IConnection connection)
+        public BasicQueue Declare(IConnection connection)
         {
             return new BasicQueue(this).Declare(connection);
         }

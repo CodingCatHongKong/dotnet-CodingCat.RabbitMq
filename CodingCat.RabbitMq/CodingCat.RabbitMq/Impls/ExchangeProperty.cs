@@ -6,7 +6,7 @@ using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 namespace CodingCat.RabbitMq.Impls
 {
     public class ExchangeProperty
-        : IExchangeProperty, IDeclarable<IExchange>
+        : IExchangeProperty, IDeclarable<BasicExchange>
     {
         public string Name { get; set; }
         public ExchangeType ExchangeType { get; set; } = ExchangeType.Unknown;
@@ -16,7 +16,7 @@ namespace CodingCat.RabbitMq.Impls
         public bool IsAutoDelete { get; set; } = false;
         public IDictionary<string, object> Arguments { get; set; }
 
-        public IExchange Declare(IConnection connection)
+        public BasicExchange Declare(IConnection connection)
         {
             return new BasicExchange(this).Declare(connection);
         }
