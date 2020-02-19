@@ -28,7 +28,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         public IQueue UsingQueue { get; set; }
         public bool IsAutoAck { get; set; } = false;
 
-        protected abstract void OnSubscribeException(
+        protected abstract void OnError(
             Exception exception
         );
 
@@ -70,7 +70,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
                 }
                 catch (Exception ex)
                 {
-                    this.OnSubscribeException(ex);
+                    this.OnError(ex);
                 }
             });
 
@@ -107,7 +107,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             }
             catch (Exception ex)
             {
-                this.OnSubscribeException(ex);
+                this.OnError(ex);
             }
 
             this.Process(input, eventArgs);
@@ -145,7 +145,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             }
             catch (Exception ex)
             {
-                this.OnSubscribeException(ex);
+                this.OnError(ex);
             }
 
             Task.Run(() =>

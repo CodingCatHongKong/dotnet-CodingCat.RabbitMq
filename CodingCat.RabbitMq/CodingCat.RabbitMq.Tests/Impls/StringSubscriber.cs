@@ -24,7 +24,7 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         #endregion Constructor(s)
 
-        protected override void OnSubscribeException(Exception exception)
+        protected override void OnError(Exception exception)
         {
             this.LastException = exception;
         }
