@@ -2,6 +2,72 @@
 
 Wrapped the official RabbitMq dotnet client [https://github.com/rabbitmq/rabbitmq-dotnet-client] for easier micro-services adoption.
 
+#### TL;DR;
+
+```csharp
+// -- The Producer
+public class UserAccountsClient : BaseBasicPublisher<UserCommand, UserCommandResult> {
+  public ILogger logger { get; set; }
+  
+  protected override void OnReceiveError(Exception exception) {
+    this.logger?.LogError(exception, "");
+  }
+}
+
+// The Consumer
+public class UserAccountsService : BaseBasicSubscriber<UserCommand, UserCommandResult> {
+  public ILogger logger { get; set; }
+  
+  public new UserAccountsService Subscribe() {
+    base.Subscribe();
+    return this;
+  }
+  
+  protected override OnError(Exception exception) {
+    this.logger?.LogError(exception, "");
+  }
+  
+  protected override UserCommandResult Process(
+    UserCommand input,
+    BasicDeliverEventArgs eventArgs
+  ) {
+    var output = ... // -- process the command
+    return output;
+  }
+}
+
+// -- Consume the producer
+var userAccountsQueue = this.userAccountQueueConfigurations.Declare();
+var userAccountsClient = new UserAccountsClient()
+{
+  UsingQueue = myUserAccountsQueue(),
+  InputSerializer = new JsonSerializer<UserCommand>(),
+  OutputSerializer = new JsonSerializer<UserCommandResult>(),
+  // -- Optionals
+  DefaultOutput = UserCommandResult.Default(),
+  Timeout = TimeSpan.FromSeconds(30)
+};
+
+var createdUser = userAccountsClient.Process(UserCommand.CreateUser(....));
+
+// -- Subscribe the consumer
+var userAccountsQueue = this.userAccountQueueConfigurations.Declare();
+var userAccountsService = new UserAccountsService() {
+  UsingQueue = myUserAccountsQueue(),
+  InputSerializer = new JsonSerializer<UserCommand>(),
+  OutputSerializer = new JsonSerializer<UserCommandResult>(),
+  // -- Optionals
+  DefaultInput = UserCommand.Default(),
+  DefaultOutput = UserCommandResult.Default(),
+  Timeout = TimeSpan.FromSeconds(30)
+}.Subscribe();
+```
+
+
+-----------------------------
+### Long Version
+-----------------------------
+
 #### Declaring the `Exchange` & `Queue`
 
 `IExchange` shall be declared through the `IExchangeProperty` (and `IQueue` from `IQueueProperty`) by design, as we would like to load their properties through a configuration file, when keeping the configuration classes clean and easy to read.
@@ -137,12 +203,9 @@ The `Publisher` & `Subscriber` can serve more than mentioned. We have had encoun
 
 If the `Publisher` or `Subscriber` are not configured for such properties, it will uses `default(T)` for both `TInput` (only available to `ISubscriber`) and `TOutput`, and the default timeout will be 90 seconds.
 
-For only the `BaseBasicPublisher<TInput, TOutput>`, it uses the `BasicGet` internally and having a 5ms interval check for output by default.
-
 The flow for the `Publisher<TInput, TOutput>`:
 1. Publish the message
-2. Check for output every {check_reply_interval}
-3. Return the default value if waited for {timeout}, or the received output
+2. Return the default value if waited for {timeout}, or the received output
 
 The flow for the `Subscriber<TInput>`:
 1. Received a message
@@ -154,11 +217,12 @@ The flow for the `Subscriber<TInput, TOutput>`:
 2. Try to process for the output
 3. return the default value if processed for {timeout} or the actual processed output
 
+**note:** The default input/output will be used if the related process encountered an exception
+
 ```csharp
 var userActivityLogger = new UserActivityLogger(exchange, queue, routingKey) {
   DefaultOutput = false,
-  Timeout = TimeSpan.FromSeconds(5),
-  CheckReplyInterval = TimeSpan.FromSeconds(1)
+  Timeout = TimeSpan.FromSeconds(5)
 };
 
 ...
