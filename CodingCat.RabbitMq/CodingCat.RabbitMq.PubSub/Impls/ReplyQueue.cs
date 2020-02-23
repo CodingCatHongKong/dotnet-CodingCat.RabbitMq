@@ -40,10 +40,7 @@ namespace CodingCat.RabbitMq.PubSub.Impls
             throw new NotSupportedException();
         }
 
-        public virtual void Dispose()
-        {
-            this.Channel?.Dispose();
-        }
+        public virtual void Dispose() { }
 
         private string GetReplyQueueName()
         {
