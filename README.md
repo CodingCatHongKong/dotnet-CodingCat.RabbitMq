@@ -2,6 +2,72 @@
 
 Wrapped the official RabbitMq dotnet client [https://github.com/rabbitmq/rabbitmq-dotnet-client] for easier micro-services adoption.
 
+#### TL;DR;
+
+```csharp
+// -- The Producer
+public class UserAccountsClient : BaseBasicPublisher<UserCommand, UserCommandResult> {
+  public ILogger logger { get; set; }
+  
+  protected override void OnReceiveError(Exception exception) {
+    this.logger?.LogError(exception, "");
+  }
+}
+
+// The Consumer
+public class UserAccountsService : BaseBasicSubscriber<UserCommand, UserCommandResult> {
+  public ILogger logger { get; set; }
+  
+  public new UserAccountsService Subscribe() {
+    base.Subscribe();
+    return this;
+  }
+  
+  protected override OnError(Exception exception) {
+    this.logger?.LogError(exception, "");
+  }
+  
+  protected override UserCommandResult Process(
+    UserCommand input,
+    BasicDeliverEventArgs eventArgs
+  ) {
+    var output = ... // -- process the command
+    return output;
+  }
+}
+
+// -- Consume the producer
+var userAccountsQueue = this.userAccountQueueConfigurations.Declare();
+var userAccountsClient = new UserAccountsClient()
+{
+  UsingQueue = myUserAccountsQueue(),
+  InputSerializer = new JsonSerializer<UserCommand>(),
+  OutputSerializer = new JsonSerializer<UserCommandResult>(),
+  // -- Optionals
+  DefaultOutput = UserCommandResult.Default(),
+  Timeout = TimeSpan.FromSeconds(30)
+};
+
+var createdUser = userAccountsClient.Process(UserCommand.CreateUser(....));
+
+// -- Subscribe the consumer
+var userAccountsQueue = this.userAccountQueueConfigurations.Declare();
+var userAccountsService = new UserAccountsService() {
+  UsingQueue = myUserAccountsQueue(),
+  InputSerializer = new JsonSerializer<UserCommand>(),
+  OutputSerializer = new JsonSerializer<UserCommandResult>(),
+  // -- Optionals
+  DefaultInput = UserCommand.Default(),
+  DefaultOutput = UserCommandResult.Default(),
+  Timeout = TimeSpan.FromSeconds(30)
+}.Subscribe();
+```
+
+
+-----------------------------
+### Long Version
+-----------------------------
+
 #### Declaring the `Exchange` & `Queue`
 
 `IExchange` shall be declared through the `IExchangeProperty` (and `IQueue` from `IQueueProperty`) by design, as we would like to load their properties through a configuration file, when keeping the configuration classes clean and easy to read.
