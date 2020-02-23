@@ -20,11 +20,11 @@ namespace CodingCat.RabbitMq.PubSub.Impls
         #region Constructor(s)
 
         public ReplyQueue(
-            IConnection connection,
+            IModel channel,
             IDictionary<string, object> arguments
         )
         {
-            this.Channel = connection.CreateModel();
+            this.Channel = channel;
 
             this.Name = this.GetReplyQueueName();
             this.Arguments = arguments;
