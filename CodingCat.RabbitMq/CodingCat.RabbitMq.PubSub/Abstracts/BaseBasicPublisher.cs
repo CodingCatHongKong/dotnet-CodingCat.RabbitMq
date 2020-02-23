@@ -74,14 +74,12 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
         ITimeoutPubSub
     {
         public const int DEFAULT_TIMEOUT_IN_SECONDS = 90;
-        public const int DEFAULT_CHECK_REPLY_INTERVAL_IN_MILLISECONDS = 5;
 
         public ISerializer<TInput> InputSerializer { get; set; }
         public ISerializer<TOutput> OutputSerializer { get; set; }
         public TOutput DefaultOutput { get; set; } = default(TOutput);
 
         public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(DEFAULT_TIMEOUT_IN_SECONDS);
-        public TimeSpan CheckReplyInterval { get; set; } = TimeSpan.FromMilliseconds(DEFAULT_CHECK_REPLY_INTERVAL_IN_MILLISECONDS);
 
         protected abstract void OnReceiveError(Exception exception);
 
