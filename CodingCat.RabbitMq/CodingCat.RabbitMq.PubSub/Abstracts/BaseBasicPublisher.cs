@@ -125,6 +125,9 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             subscriber.MessageCompleted += (sender, eventArgs) =>
             {
                 output = subscriber.Replied;
+
+                if (subscriber.Exception != null)
+                    this.OnReceiveError(subscriber.Exception);
                 responsedEvent.Set();
             };
             subscriber.Disposing += (sender, eventArgs) =>
@@ -143,6 +146,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
 
                 responsedEvent.WaitOne();
             }
+
             return output;
         }
     }
