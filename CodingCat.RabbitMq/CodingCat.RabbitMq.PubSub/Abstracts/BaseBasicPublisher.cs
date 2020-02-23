@@ -135,7 +135,7 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
                     .QueueDelete(replyQueue.Name, false, false);
             };
 
-            using(subscriber)
+            using (subscriber)
             {
                 Task.Delay(this.Timeout)
                     .ContinueWith(task => responsedEvent.Set());
