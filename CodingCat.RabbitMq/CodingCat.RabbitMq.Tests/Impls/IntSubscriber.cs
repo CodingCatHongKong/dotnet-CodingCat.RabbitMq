@@ -25,6 +25,12 @@ namespace CodingCat.RabbitMq.Tests.Impls
 
         #endregion Constructor(s)
 
+        public new IntSubscriber Subscribe()
+        {
+            base.Subscribe();
+            return this;
+        }
+
         protected override void OnError(Exception exception)
         {
             Console.WriteLine(DateTime.Now);

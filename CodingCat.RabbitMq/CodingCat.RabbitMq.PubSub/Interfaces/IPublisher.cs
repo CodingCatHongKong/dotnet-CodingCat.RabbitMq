@@ -1,6 +1,5 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
 using RabbitMQ.Client;
-using System;
 
 namespace CodingCat.RabbitMq.PubSub.Interfaces
 {
@@ -18,8 +17,6 @@ namespace CodingCat.RabbitMq.PubSub.Interfaces
 
     public interface IPublisher<TInput, TOutput>
     {
-        TimeSpan CheckReplyInterval { get; }
-
         TOutput Process(TInput input, IBasicProperties properties = null);
     }
 }

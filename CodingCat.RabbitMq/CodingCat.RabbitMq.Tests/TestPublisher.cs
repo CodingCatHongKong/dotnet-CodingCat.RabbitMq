@@ -156,5 +156,27 @@ namespace CodingCat.RabbitMq.Tests
             Assert.AreEqual(expected, actual);
             publisher.Dispose();
         }
+
+        [TestMethod]
+        public void Test_BasicPublisher_WithResponse_ChannelNotDisposedByReplySubscriber()
+        {
+            // Arrange
+            var input = new Random().Next(0, 1000) - 1;
+            var expected = input + 1;
+
+            var publisher = new IntPublisher(this.GetDeclaredQueue());
+            var subscriber = new IntSubscriber(this.GetDeclaredQueue())
+                .Subscribe();
+
+            // Act
+            publisher.Process(int.MinValue);
+            var actual = publisher.Process(input);
+
+            // Assert
+            Assert.AreEqual(expected, actual);
+
+            subscriber.Dispose();
+            publisher.Dispose();
+        }
     }
 }
