@@ -1,4 +1,5 @@
 ﻿using CodingCat.RabbitMq.Interfaces;
+using CodingCat.RabbitMq.PubSub.Impls;
 using CodingCat.RabbitMq.PubSub.Interfaces;
 using CodingCat.Serializers.Interfaces;
 using RabbitMQ.Client;
@@ -98,59 +99,50 @@ namespace CodingCat.RabbitMq.PubSub.Abstracts
             IBasicProperties properties
         )
         {
-            var replyTo = this.UsingQueue.Channel.QueueDeclare(
-                queue: string.Empty,
-                durable: false,
-                exclusive: false,
-                autoDelete: true
-            ).QueueName;
+            var replyQueue = new ReplyQueue(this.UsingQueue.Channel, null);
 
             properties = this.GetOrCreateProperties(properties);
-            properties.ReplyTo = replyTo;
+            properties.ReplyTo = replyQueue.Name;
 
             this.Publish(body, properties);
-            return this.Receive(replyTo);
+            return this.Receive(replyQueue);
         }
 
-        protected virtual TOutput Receive(string replyTo)
+        protected virtual TOutput Receive(ReplyQueue replyQueue)
         {
             var responsedEvent = new AutoResetEvent(false);
             var output = this.DefaultOutput;
 
-            var isTimedOut = false;
-            var channel = this.UsingQueue.Channel;
-            var message = null as BasicGetResult;
-
-            Task.Delay(this.Timeout)
-                .ContinueWith(task => isTimedOut = true);
-            Task.Run(() =>
+            var subscriber = new ReplySubscriber<TOutput>(
+                replyQueue,
+                this.OutputSerializer
+            )
             {
-                while (message == null)
-                {
-                    if (isTimedOut) break;
-                    message = channel.BasicGet(replyTo, true);
-                    Thread.Sleep(this.CheckReplyInterval);
-                }
+                DefaultInput = output,
+                Timeout = this.Timeout
+            };
 
-                if (message != null)
-                {
-                    try
-                    {
-                        output = this.OutputSerializer.FromBytes(
-                            message.Body
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        this.OnReceiveError(ex);
-                    }
-                }
-
+            subscriber.MessageCompleted += (sender, eventArgs) =>
+            {
+                output = subscriber.Replied;
                 responsedEvent.Set();
-            });
+            };
+            subscriber.Disposing += (sender, eventArgs) =>
+            {
+                subscriber
+                    .UsingQueue
+                    .Channel
+                    .QueueDelete(replyQueue.Name, false, false);
+            };
 
-            responsedEvent.WaitOne();
-            channel.QueueDelete(replyTo, false, false);
+            using(subscriber)
+            {
+                Task.Delay(this.Timeout)
+                    .ContinueWith(task => responsedEvent.Set());
+                Task.Run(() => subscriber.Subscribe());
+
+                responsedEvent.WaitOne();
+            }
             return output;
         }
     }
