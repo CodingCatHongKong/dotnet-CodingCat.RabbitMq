@@ -1,4 +1,4 @@
-#### 0.1.1
+#### 0.2.0
 
 fixed #1 [https://github.com/CodingCatHongKong/dotnet-CodingCat.RabbitMq/issues/1]
 
