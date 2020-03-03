@@ -15,4 +15,8 @@
     <PackageReference Include="RabbitMQ.Client" Version="5.1.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\dotnet-CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>
