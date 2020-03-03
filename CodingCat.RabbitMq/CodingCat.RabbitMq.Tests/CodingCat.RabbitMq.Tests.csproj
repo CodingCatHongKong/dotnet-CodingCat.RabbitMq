@@ -81,10 +81,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CodingCat.RabbitMq.PubSub\CodingCat.RabbitMq.PubSub.csproj">
-      <Project>{6d460842-81f7-4cb0-8dbe-11c35574e46c}</Project>
-      <Name>CodingCat.RabbitMq.PubSub</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CodingCat.RabbitMq\CodingCat.RabbitMq.csproj">
       <Project>{1c5a7644-1aac-4860-b0d3-30e95481be83}</Project>
       <Name>CodingCat.RabbitMq</Name>
