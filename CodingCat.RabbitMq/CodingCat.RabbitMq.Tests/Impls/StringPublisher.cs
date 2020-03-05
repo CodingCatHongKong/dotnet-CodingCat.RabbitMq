@@ -1,28 +1,38 @@
-﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
+﻿using CodingCat.RabbitMq.Abstractions;
 using CodingCat.Serializers.Impls;
+using CodingCat.Serializers.Interfaces;
+using RabbitMQ.Client;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class StringPublisher : BaseBasicPublisher<string>
+    public class StringPublisher : BasePublisher<string>
     {
+        public ISerializer<string> Serializer { get; set; }
+
         #region Constructor(s)
 
-        public StringPublisher(IQueue declaredQueue)
+        public StringPublisher(IModel channel, string routingKey)
+            : base(channel)
         {
-            this.UsingQueue = declaredQueue;
-            this.RoutingKey = this.UsingQueue.BindingKey;
-            this.InputSerializer = new StringSerializer();
+            this.RoutingKey = routingKey;
+
+            this.Serializer = new StringSerializer();
         }
 
         public StringPublisher(
-            IExchangeProperty exchange,
-            IQueue declaredQueue
-        ) : this(declaredQueue)
+            IModel channel,
+            string routingKey,
+            string exchangeName
+        ) : this(channel, routingKey)
         {
-            this.ExchangeProperty = exchange;
+            this.ExchangeName = ExchangeName;
         }
 
         #endregion Constructor(s)
+
+        protected override byte[] ToBytes(string input)
+        {
+            return this.Serializer.ToBytes(input);
+        }
     }
 }
