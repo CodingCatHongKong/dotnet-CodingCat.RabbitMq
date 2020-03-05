@@ -1,9 +1,7 @@
-﻿using CodingCat.RabbitMq.Impls;
-using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
+﻿using CodingCat.RabbitMq.Abstractions;
+using CodingCat.RabbitMq.Abstractions.Interfaces;
 using RabbitMQ.Client;
 using System;
-using ExchangeType = CodingCat.RabbitMq.Enums.ExchangeType;
 
 namespace CodingCat.RabbitMq.Tests.Abstracts
 {
@@ -27,54 +25,30 @@ namespace CodingCat.RabbitMq.Tests.Abstracts
 
         public IQueue GetDeclaredQueue(string bindingKey = null)
         {
-            return new QueueProperty()
+            return new BasicQueue()
             {
                 Name = this.QueueName,
                 BindingKey = bindingKey,
                 IsAutoDelete = true,
                 IsDurable = false
-            }.Declare(this.Connection);
+            }.Declare(this.Connection.CreateModel());
         }
 
-        public IExchange GetDeclaredExchange(ExchangeType exchangeType)
+        public IExchange GetDeclaredExchange(ExchangeTypes exchangeType)
         {
-            return new ExchangeProperty()
+            return new BasicExchange()
             {
                 Name = $"{this.QueueName}.{exchangeType.ToString().ToLower()}",
+                ExchangeType = exchangeType,
                 IsAutoDelete = true,
-                IsDurable = false,
-                ExchangeType = exchangeType
-            }.Declare(this.Connection);
+                IsDurable = false
+            }.Declare(this.Connection.CreateModel());
         }
 
         public void Dispose()
         {
             this.Connection.Close();
             this.Connection.Dispose();
-        }
-
-        public static BaseBasicPublisher MockDispose(
-            BaseBasicPublisher publisher
-        )
-        {
-            publisher.Disposing += (sender, eventArgs) =>
-            {
-                var queue = publisher.UsingQueue;
-                queue.Channel.QueueDelete(queue.Name, false, false);
-                queue.Dispose();
-            };
-            return publisher;
-        }
-
-        public static BaseBasicSubscriber MockDispose(
-            BaseBasicSubscriber subscriber
-        )
-        {
-            subscriber.Disposing += (sender, eventArgs) =>
-            {
-                subscriber.UsingQueue.Dispose();
-            };
-            return subscriber;
         }
     }
 }
