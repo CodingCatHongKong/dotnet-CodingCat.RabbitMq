@@ -71,7 +71,6 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Impls\IntPublisher.cs" />
     <Compile Include="Impls\IntSubscriber.cs" />
-    <Compile Include="Impls\IntTimeoutSubscriber.cs" />
     <Compile Include="Impls\StringPublisher.cs" />
     <Compile Include="Impls\StringSubscriber.cs" />
     <Compile Include="Impls\DeserializeNotImplementedSerializer.cs" />
