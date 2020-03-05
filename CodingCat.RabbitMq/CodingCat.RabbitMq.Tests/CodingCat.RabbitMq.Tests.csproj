@@ -76,9 +76,6 @@
     <Compile Include="Impls\DeserializeNotImplementedSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestCreateConnectionExtensions.cs" />
-    <Compile Include="TestSubscriber.cs" />
-    <Compile Include="TestPublisher.cs" />
-    <Compile Include="TestExchangePubSub.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
