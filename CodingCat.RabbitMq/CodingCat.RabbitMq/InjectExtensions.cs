@@ -13,7 +13,9 @@ namespace CodingCat.RabbitMq
             T exchange
         ) where T : class, IExchange
         {
-            return services.AddSingleton(exchange);
+            return services
+                .AddSingleton(exchange)
+                .AddSingleton<IExchange>(exchange);
         }
 
         public static IServiceCollection AddQueue<T>(
@@ -21,7 +23,9 @@ namespace CodingCat.RabbitMq
             T queue
         ) where T : class, IQueue
         {
-            return services.AddSingleton(queue);
+            return services
+                .AddSingleton(queue)
+                .AddSingleton<IQueue>(queue);
         }
 
         public static IServiceCollection AddFactory<T>(
