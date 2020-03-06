@@ -66,7 +66,7 @@ namespace CodingCat.RabbitMq
                     return connectionFactory
                         .CreateConnection(configuration);
                 })
-                .AddSingleton(provider =>
+                .AddTransient(provider =>
                     provider.ResolveRabbitMqConnection()
                         ?.CreateModel()
                 );
