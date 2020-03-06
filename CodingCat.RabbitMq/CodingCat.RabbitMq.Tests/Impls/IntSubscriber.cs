@@ -1,65 +1,38 @@
-﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
+﻿using CodingCat.Mq.Abstractions.Interfaces;
+using CodingCat.RabbitMq.Abstractions;
 using CodingCat.Serializers.Impls;
-using RabbitMQ.Client.Events;
-using System;
+using CodingCat.Serializers.Interfaces;
+using RabbitMQ.Client;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class IntSubscriber : BaseBasicSubscriber<int, int>
+    public class IntSubscriber : BaseSubscriber<int, int>
     {
-        public Exception LastException { get; private set; }
+        public ISerializer<int> Serializer { get; }
 
         #region Constructor(s)
 
-        public IntSubscriber(IQueue queue)
+        public IntSubscriber(
+            IModel channel,
+            string queueName,
+            IProcessor<int, int> processor
+        ) : base(channel, queueName, processor)
         {
-            this.UsingQueue = queue;
+            this.IsAutoAck = true;
 
-            this.DefaultInput = -1;
-            this.DefaultOutput = -1;
-
-            this.InputSerializer = new Int32Serializer();
-            this.OutputSerializer = new Int32Serializer();
+            this.Serializer = new Int32Serializer();
         }
 
         #endregion Constructor(s)
 
-        public new IntSubscriber Subscribe()
+        protected override int FromBytes(byte[] bytes)
         {
-            base.Subscribe();
-            return this;
+            return this.Serializer.FromBytes(bytes);
         }
 
-        protected override void OnError(Exception exception)
+        protected override byte[] ToBytes(int output)
         {
-            Console.WriteLine(DateTime.Now);
-            Console.WriteLine(exception.Message);
-            Console.WriteLine(exception.StackTrace);
-
-            this.LastException = exception;
-        }
-
-        protected override int Process(
-            int input,
-            BasicDeliverEventArgs eventArgs
-        )
-        {
-            var output = this.DefaultOutput;
-            try
-            {
-                output = input + 1;
-                this.UsingQueue.Channel
-                    .BasicAck(eventArgs.DeliveryTag, false);
-            }
-            catch (Exception ex)
-            {
-                this.OnError(ex);
-                this.UsingQueue.Channel
-                    .BasicReject(eventArgs.DeliveryTag, false);
-            }
-
-            return output;
+            return this.Serializer.ToBytes(output);
         }
     }
 }

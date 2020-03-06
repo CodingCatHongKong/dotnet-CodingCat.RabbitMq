@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using CodingCat.Mq.Abstractions.Interfaces;
+using RabbitMQ.Client;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +10,21 @@ namespace CodingCat.RabbitMq
     {
         public static IConnection CreateConnection(
             this IConnectionFactory factory,
+            IConnectConfiguration configuration
+        )
+        {
+            return factory.CreateConnection(
+                configuration.TimeoutPerTry,
+                configuration.RetryInterval,
+                configuration.RetryUpTo
+            );
+        }
+
+        public static IConnection CreateConnection(
+            this IConnectionFactory factory,
             TimeSpan timeoutPerTry,
             TimeSpan retryInterval,
-            int retryUpTo
+            uint retryUpTo
         )
         {
             for (var i = 0; i < retryUpTo; i++)

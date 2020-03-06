@@ -1,40 +1,33 @@
-﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
+﻿using CodingCat.Mq.Abstractions.Interfaces;
+using CodingCat.RabbitMq.Abstractions;
 using CodingCat.Serializers.Impls;
-using RabbitMQ.Client.Events;
-using System;
+using CodingCat.Serializers.Interfaces;
+using RabbitMQ.Client;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class StringSubscriber : BaseBasicSubscriber<string>
+    public class StringSubscriber : BaseSubscriber<string>
     {
-        public string LastInput { get; private set; }
-        public Exception LastException { get; private set; }
+        public ISerializer<string> Serializer { get; }
 
         #region Constructor(s)
 
-        public StringSubscriber(IQueue queue)
+        public StringSubscriber(
+            IModel channel,
+            string queueName,
+            IProcessor<string> processor
+        ) : base(channel, queueName, processor)
         {
-            this.UsingQueue = queue;
             this.IsAutoAck = true;
 
-            this.DefaultInput = null;
-            this.InputSerializer = new StringSerializer();
+            this.Serializer = new StringSerializer();
         }
 
         #endregion Constructor(s)
 
-        protected override void OnError(Exception exception)
+        protected override string FromBytes(byte[] bytes)
         {
-            this.LastException = exception;
-        }
-
-        protected override void Process(
-            string input,
-            BasicDeliverEventArgs eventArgs
-        )
-        {
-            this.LastInput = input;
+            return this.Serializer.FromBytes(bytes);
         }
     }
 }
