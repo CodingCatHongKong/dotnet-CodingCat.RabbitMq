@@ -1,5 +1,7 @@
-﻿using CodingCat.RabbitMq.Abstractions.Interfaces;
+﻿using CodingCat.Mq.Abstractions.Interfaces;
+using CodingCat.RabbitMq.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 
 namespace CodingCat.RabbitMq
 {
@@ -26,6 +28,25 @@ namespace CodingCat.RabbitMq
         ) where T : class, ISubscriberFactory
         {
             return services.AddTransient<ISubscriberFactory, T>();
+        }
+
+        public static IServiceCollection AddSingleConnection(
+            this IServiceCollection services,
+            IConnectionFactory connectionFactory
+        )
+        {
+            return services
+                .AddSingleton(provider =>
+                {
+                    var configuration = provider
+                        .GetRequiredService<IConnectConfiguration>();
+                    return connectionFactory
+                        .CreateConnection(configuration);
+                })
+                .AddSingleton(provider =>
+                    provider.ResolveRabbitMqConnection()
+                        ?.CreateModel()
+                );
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CodingCat.RabbitMq.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 using System;
 
 namespace CodingCat.RabbitMq
@@ -32,6 +33,34 @@ namespace CodingCat.RabbitMq
         ) where T : class, IQueue
         {
             return provider.GetRequiredService<T>();
+        }
+
+        public static IConnection ResolveRabbitMqConnection(
+            this IServiceProvider provider
+        )
+        {
+            return provider.GetService<IConnection>();
+        }
+
+        public static IConnection RequireRabbitMqConnection(
+            this IServiceProvider provider
+        )
+        {
+            return provider.GetRequiredService<IConnection>();
+        }
+
+        public static IModel ResolveRabbitMqChannel(
+            this IServiceProvider provider
+        )
+        {
+            return provider.GetService<IModel>();
+        }
+
+        public static IModel RequireRabbitMqChannel(
+            this IServiceProvider provider
+        )
+        {
+            return provider.GetRequiredService<IModel>();
         }
     }
 }
