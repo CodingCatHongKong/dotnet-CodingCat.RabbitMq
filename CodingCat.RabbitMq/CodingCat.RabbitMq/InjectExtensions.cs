@@ -2,6 +2,7 @@
 using CodingCat.RabbitMq.Abstractions.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using System;
 
 namespace CodingCat.RabbitMq
 {
@@ -27,7 +28,25 @@ namespace CodingCat.RabbitMq
             this IServiceCollection services
         ) where T : class, ISubscriberFactory
         {
-            return services.AddTransient<ISubscriberFactory, T>();
+            return services.AddSingleton<ISubscriberFactory, T>();
+        }
+
+        public static IServiceCollection AddFactory<T>(
+            this IServiceCollection services,
+            T factory
+        ) where T : class, ISubscriberFactory
+        {
+            return services.AddSingleton<ISubscriberFactory>(factory);
+        }
+
+        public static IServiceCollection AddFactory<T>(
+            this IServiceCollection services,
+            Func<IServiceProvider, T> callback
+        ) where T : class, ISubscriberFactory
+        {
+            return services.AddSingleton<ISubscriberFactory>(
+                provider => callback(provider)
+            );
         }
 
         public static IServiceCollection AddSingleConnection(
