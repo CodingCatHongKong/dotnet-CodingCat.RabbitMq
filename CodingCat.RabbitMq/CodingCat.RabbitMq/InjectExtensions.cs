@@ -71,5 +71,12 @@ namespace CodingCat.RabbitMq
                         ?.CreateModel()
                 );
         }
+
+        public static IServiceCollection AddInitializer<T>(
+            this IServiceCollection services
+        ) where T : class, IInitializer
+        {
+            return services.AddSingleton<IInitializer, T>();
+        }
     }
 }
