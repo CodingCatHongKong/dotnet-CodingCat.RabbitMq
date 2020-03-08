@@ -1,38 +1,46 @@
-﻿using CodingCat.RabbitMq.Interfaces;
-using CodingCat.RabbitMq.PubSub.Abstracts;
+﻿using CodingCat.RabbitMq.Abstractions;
 using CodingCat.Serializers.Impls;
+using CodingCat.Serializers.Interfaces;
+using RabbitMQ.Client;
 using System;
 
 namespace CodingCat.RabbitMq.Tests.Impls
 {
-    public class IntPublisher : BaseBasicPublisher<int, int>
+    public class IntPublisher : BasePublisher<int, int>
     {
         public Exception LastException { get; private set; }
 
+        public ISerializer<int> Serializer { get; set; }
+
         #region Constructor(s)
 
-        public IntPublisher(IQueue declaredQueue)
+        public IntPublisher(IConnection connection, string routingKey)
+            : base(connection)
         {
-            this.UsingQueue = declaredQueue;
-            this.RoutingKey = this.UsingQueue.BindingKey;
+            this.RoutingKey = routingKey;
 
-            this.InputSerializer = new Int32Serializer();
-            this.OutputSerializer = new Int32Serializer();
+            this.Serializer = new Int32Serializer();
         }
 
         public IntPublisher(
-            IExchangeProperty exchange,
-            IQueue declaredQueue
-        ) : this(declaredQueue)
+            IConnection connection,
+            string routingKey,
+            string exchangeName
+        ) : this(connection, routingKey)
         {
-            this.ExchangeProperty = exchange;
+            this.ExchangeName = exchangeName;
         }
 
         #endregion Constructor(s)
 
-        protected override void OnReceiveError(Exception exception)
+        protected override int FromBytes(byte[] bytes)
         {
-            this.LastException = exception;
+            return this.Serializer.FromBytes(bytes);
+        }
+
+        protected override byte[] ToBytes(int input)
+        {
+            return this.Serializer.ToBytes(input);
         }
     }
 }
