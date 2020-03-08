@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\dotnet-CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions\CodingCat.RabbitMq.Abstractions.csproj" />
+    <PackageReference Include="CodingCat.RabbitMq.Abstractions" Version="0.1.0" />
   </ItemGroup>
 
 </Project>
