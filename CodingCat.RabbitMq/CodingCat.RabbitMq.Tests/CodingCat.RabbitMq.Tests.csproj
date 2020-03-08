@@ -115,7 +115,6 @@
     <Compile Include="Impls\IntQueue.cs" />
     <Compile Include="Impls\IntSubscriber.cs" />
     <Compile Include="Impls\IntSubscriberFactory.cs" />
-    <Compile Include="Impls\DelegatedProcessor.cs" />
     <Compile Include="Impls\StringPublisher.cs" />
     <Compile Include="Impls\StringQueue.cs" />
     <Compile Include="Impls\StringSubscriber.cs" />

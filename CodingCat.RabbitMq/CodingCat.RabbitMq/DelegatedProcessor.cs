@@ -1,6 +1,6 @@
 ﻿using CodingCat.Mq.Abstractions;
 
-namespace CodingCat.RabbitMq.Tests.Impls
+namespace CodingCat.RabbitMq
 {
     public class DelegatedProcessor<T> : BaseDelegatedProcessor<T>
     {
